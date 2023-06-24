@@ -20,15 +20,16 @@ typedef struct stackNode StackNode;
 typedef StackNode* StackNodePtr;
 
 void convertToPostfix(char infix[], char postfix[]);
-bool isOperator(int c);
-int precedence(int operator1, int operator2);
-void push(StackNodePtr *topPtr, int value);
-int pop(StackNodePtr *topPtr);
-int stackTop(StackNodePtr topPtr);
-bool isEmpty(StackNodePtr topPtr);
-void printStack(StackNodePtr topPtr);
+// bool isOperator(int c);
+// int precedence(int operator1, int operator2);
+// void push(StackNodePtr *topPtr, int value);
+// int pop(StackNodePtr *topPtr);
+// int stackTop(StackNodePtr topPtr);
+// bool isEmpty(StackNodePtr topPtr);
+// void printStack(StackNodePtr topPtr);
 
-int calculate(int op1, int op2, char op1_type, char op2_type, int operation, struct tableEntry symbol_table[]);
-void evaluatePostFixExpression(char *exptr, struct tableEntry symbol_table[]);
+// int calculate(int op1, int op2, char op1_type, char op2_type, int operation, struct tableEntry symbol_table[]);
+void evaluatePostFixExpression(char *exptr, struct tableEntry symbol_table[], int *symbol_index,
+    int memory[], int *instruction_counter, int *data_counter);
 
 #endif

@@ -3,9 +3,7 @@
 void load(int simpletron_memory[], char filename[])
 {
     FILE* programPtr = NULL;
-
-    printf("%s\n", filename);
-    programPtr = fopen(filename, "r");
+    programPtr = fopen("../resource/programSML.txt", "r");
     int command = 0;
     int address = 0;
     while (fscanf(programPtr, "%d", &command) != EOF)
@@ -192,23 +190,17 @@ int main()
     int operation_code = 0;
     int operand = 0;
 
-    char c[30] = "97*(34 +a)";
-    char d[30];
-    struct tableEntry abc[MEMORY_SIZE];
-    convertToPostfix(c, d);
-    printf("%s\n", d);
-    evaluatePostFixExpression(d, abc);
-
-    char filename[MAX_FILE_NAME + RESOURCE_FOLDER + 1] = "../resource/";
     //prompt
     printf("***                   Welcome to Simpletron                  ***\n");
     printf("***                                                          ***\n");
-    printf("*** Please enter your program filename (no more than 20      ***\n");
-    printf("*** characters, located at resource folder).                 ***\n");
-    printf("*** Type the sentinel -999999 to stop entering your program. ***\n");
-    scanf("%s", filename + 12);
+    printf("*** Please enter your program into file programSiMPLE.txt    ***\n");
+    printf("*** (located at resource folder).                            ***\n");
 
-    load(simpletron_memory, filename);
+    char source_code[] = "../resource/programSiMPLE.txt";
+    char sml_code[] = "../resource/programSML.txt";
+    compile(simpletron_memory, &instruction_counter, source_code, sml_code);
+
+    load(simpletron_memory, sml_code);
     execute(simpletron_memory, &accumalator, &instruction_counter, &instruction_register, &operation_code, &operand);
     dump(simpletron_memory, accumalator, instruction_counter, instruction_register, operation_code, operand);
     return 0;

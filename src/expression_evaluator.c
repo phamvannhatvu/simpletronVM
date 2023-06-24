@@ -1,73 +1,83 @@
 #include "../inc/expression_evaluator.h"
 
-int data_counter = MEMORY_SIZE;
-
-void evaluatePostFixExpression(char *expr, struct tableEntry symbol_table[])
+bool isOperator(int c)
 {
-    StackNodePtr topPtr = malloc(sizeof(StackNodePtr));
-    int expr_len = strlen(expr);
-    char *symbol_runner = strtok(expr, " ");
-    while (symbol_runner != NULL)
-    {
-        if (isOperator(symbol_runner[0]))
-        {
-            char type1 = topPtr->type;
-            int symbol1 = pop(&topPtr);
-            char type2 = topPtr->type;
-            int symbol2 = pop(&topPtr);
-            push(&topPtr, calculate(symbol1, symbol2, type1, type2, symbol_runner[0], symbol_table));
-        }else
-        {
-            if (symbol_runner[0] >= '0' && symbol_runner[0] <= '9')
-            {
-                findSymbolLocation(symbol_table, atoi(symbol_runner), 'C', &data_counter);
-                push(&topPtr, atoi(symbol_runner));
-                topPtr->type = 'C';
-            }else
-            {
-                findSymbolLocation(symbol_table, symbol_runner[0], 'V', &data_counter);
-                push(&topPtr, symbol_runner[0]);
-                topPtr->type = 'V';
-            }
-        }
-        symbol_runner = strtok(NULL, " ");
-    }
-
-    for (int i = 999; i >= data_counter; --i)
-    {
-        if (symbol_table[i].type == 'V')
-        {
-            printf("%d: %c %d\n", i, symbol_table[i].symbol, symbol_table[i].location);
-        }else if (symbol_table[i].type == 'C')
-        {
-            printf("%d: %d %d\n", i, symbol_table[i].symbol, symbol_table[i].location);
-        }
-    }
+    return (c == '+' || c == '-' || c == '*' || c == '/');
 }
 
-int calculate(int op1, int op2, char op1_type, char op2_type, int operation, struct tableEntry symbol_table[])
+int precedence(int operator1, int operator2)
 {
-    printf("20%03d\n", findSymbolLocation(symbol_table, op1, op1_type, &data_counter));
+    if (operator1 == '+' || operator1 == '-')
+    {
+        return (operator2 == '+' || operator2 == '-') ? 0 : -1;
+    }
+    return (operator2 == '*' || operator2 == '/') ? 0 : 1;
+}
+
+void push(StackNodePtr *topPtr, int value)
+{
+    StackNodePtr newPtr = malloc(sizeof(StackNodePtr));
+    newPtr->nextPtr = *topPtr;
+    newPtr->data = value;
+    *topPtr = newPtr;
+}
+
+int pop(StackNodePtr *topPTr)
+{
+    int poped_element = (*topPTr)->data;
+    StackNodePtr top = *topPTr;
+    *topPTr = (*topPTr)->nextPtr;
+    free(top);
+    return poped_element;
+}
+
+int stackTop(StackNodePtr topPtr)
+{
+    return topPtr->data;
+}
+
+bool isEmpty(StackNodePtr topPtr)
+{
+    return topPtr == NULL;
+}
+
+void printStack(StackNodePtr topPtr)
+{
+    while (topPtr != NULL)
+    {
+        printf("%c", topPtr->data);
+        topPtr = topPtr->nextPtr;
+    }
+    printf("\n");
+}
+
+int calculate(int op1, int op2, char op1_type, char op2_type, int operation, struct tableEntry symbol_table[],
+    int *symbol_index, int memory[], int *instruction_counter, int *data_counter)
+{
+    memory[*instruction_counter] = 20 * MEMORY_SIZE + findSymbolLocation(symbol_table, op1, op1_type, data_counter, symbol_index);
+    ++(*instruction_counter);
     switch (operation)
     {
     case '+':
-        printf("30%03d\n", findSymbolLocation(symbol_table, op2, op2_type, &data_counter));
+        memory[*instruction_counter] = 30 * MEMORY_SIZE + findSymbolLocation(symbol_table, op2, op2_type, data_counter, symbol_index);
         break;
     case '-':
-        printf("31%03d\n", findSymbolLocation(symbol_table, op2, op2_type, &data_counter));
+        memory[*instruction_counter] = 31 * MEMORY_SIZE + findSymbolLocation(symbol_table, op2, op2_type, data_counter, symbol_index);
         break;
     case '/':
-        printf("32%03d\n", findSymbolLocation(symbol_table, op2, op2_type, &data_counter));
+        memory[*instruction_counter] = 32 * MEMORY_SIZE + findSymbolLocation(symbol_table, op2, op2_type, data_counter, symbol_index);
         break;
     case '*':
-        printf("33%03d\n", findSymbolLocation(symbol_table, op2, op2_type, &data_counter));
+        memory[*instruction_counter] = 33 * MEMORY_SIZE + findSymbolLocation(symbol_table, op2, op2_type, data_counter, symbol_index);
         break;
     default:
         break;
-    }
-    //'T': special varriable (uppercase) store temporary subexpression result
-    printf("21%03d\n", findSymbolLocation(symbol_table, 'T', 'V', &data_counter));
+    }    
+    ++(*instruction_counter);
 
+    //'T': special varriable (uppercase) store temporary subexpression result
+    memory[*instruction_counter] = 21 * MEMORY_SIZE + findSymbolLocation(symbol_table, 'T', 'V', data_counter, symbol_index);
+    ++(*instruction_counter);   
     return 'T';
 }
 
@@ -128,53 +138,37 @@ void convertToPostfix(char infix[], char postfix[])
     }
 }
 
-bool isOperator(int c)
+void evaluatePostFixExpression(char *expr, struct tableEntry symbol_table[], int *symbol_index, int memory[],
+    int *instruction_counter, int *data_counter)
 {
-    return (c == '+' || c == '-' || c == '*' || c == '/');
-}
-
-int precedence(int operator1, int operator2)
-{
-    if (operator1 == '+' || operator1 == '-')
+    StackNodePtr topPtr = malloc(sizeof(StackNodePtr));
+    int expr_len = strlen(expr);
+    char *symbol_runner = strtok(expr, " ");
+    while (symbol_runner != NULL)
     {
-        return (operator2 == '+' || operator2 == '-') ? 0 : -1;
+        if (isOperator(symbol_runner[0]))
+        {
+            char type1 = topPtr->type;
+            int symbol1 = pop(&topPtr);
+            char type2 = topPtr->type;
+            int symbol2 = pop(&topPtr);
+            push(&topPtr, calculate(symbol1, symbol2, type1, type2, symbol_runner[0], 
+                symbol_table, symbol_index, memory, instruction_counter, data_counter));
+            topPtr->type = 'V';
+        }else
+        {
+            if (symbol_runner[0] >= '0' && symbol_runner[0] <= '9')
+            {
+                findSymbolLocation(symbol_table, atoi(symbol_runner), 'C', data_counter, symbol_index);
+                push(&topPtr, atoi(symbol_runner));
+                topPtr->type = 'C';
+            }else
+            {
+                findSymbolLocation(symbol_table, symbol_runner[0], 'V', data_counter, symbol_index);
+                push(&topPtr, symbol_runner[0]);
+                topPtr->type = 'V';
+            }
+        }
+        symbol_runner = strtok(NULL, " ");
     }
-    return (operator2 == '*' || operator2 == '/') ? 0 : 1;
-}
-
-void push(StackNodePtr *topPtr, int value)
-{
-    StackNodePtr newPtr = malloc(sizeof(StackNodePtr));
-    newPtr->nextPtr = *topPtr;
-    newPtr->data = value;
-    *topPtr = newPtr;
-}
-
-int pop(StackNodePtr *topPTr)
-{
-    int poped_element = (*topPTr)->data;
-    StackNodePtr top = *topPTr;
-    *topPTr = (*topPTr)->nextPtr;
-    free(top);
-    return poped_element;
-}
-
-int stackTop(StackNodePtr topPtr)
-{
-    return topPtr->data;
-}
-
-bool isEmpty(StackNodePtr topPtr)
-{
-    return topPtr == NULL;
-}
-
-void printStack(StackNodePtr topPtr)
-{
-    while (topPtr != NULL)
-    {
-        printf("%c", topPtr->data);
-        topPtr = topPtr->nextPtr;
-    }
-    printf("\n");
 }
