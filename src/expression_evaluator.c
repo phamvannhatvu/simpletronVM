@@ -56,6 +56,11 @@ int calculate(int op1, int op2, char op1_type, char op2_type, int operation, str
 {
     memory[*instruction_counter] = 20 * MEMORY_SIZE + findSymbolLocation(symbol_table, op1, op1_type, data_counter, symbol_index);
     ++(*instruction_counter);
+    if (*instruction_counter > 0 && memory[(*instruction_counter) - 1] / MEMORY_SIZE == 21
+        && memory[(*instruction_counter) - 1] % MEMORY_SIZE == memory[*instruction_counter] % MEMORY_SIZE)
+    {
+        (*instruction_counter) -= 2;
+    }
     switch (operation)
     {
     case '+':

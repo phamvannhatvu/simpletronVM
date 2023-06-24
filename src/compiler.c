@@ -39,7 +39,13 @@ void firstPass(char *source_code, struct tableEntry symbol_table[],
 
             //load from temporary location
             memory[*instruction_counter] = LOAD * MEMORY_SIZE + findSymbolLocationLoosely(symbol_table, 'T', 'V', *symbol_index);
+            if (*instruction_counter > 0 && memory[(*instruction_counter) - 1] / MEMORY_SIZE == STORE
+                && memory[(*instruction_counter) - 1] % MEMORY_SIZE == memory[*instruction_counter] % MEMORY_SIZE)
+            {
+                (*instruction_counter) -= 2;
+            }
             ++(*instruction_counter);
+            
             //store back to varriable
             memory[*instruction_counter] = STORE * MEMORY_SIZE + result_location;
             ++(*instruction_counter);
@@ -98,6 +104,11 @@ void firstPass(char *source_code, struct tableEntry symbol_table[],
             if (strcmp(op, "==") == 0 || strcmp(op, ">=") == 0 || strcmp(op, "<=") == 0)
             {
                 memory[*instruction_counter] = LOAD * MEMORY_SIZE + left_location;
+                if (*instruction_counter > 0 && memory[(*instruction_counter) - 1] / MEMORY_SIZE == STORE
+                    && memory[(*instruction_counter) - 1] % MEMORY_SIZE == memory[*instruction_counter] % MEMORY_SIZE)
+                {
+                    (*instruction_counter) -= 2;
+                }
                 ++(*instruction_counter);
                 memory[*instruction_counter] = SUBSTRACT * MEMORY_SIZE + right_location;
                 ++(*instruction_counter);
@@ -116,12 +127,22 @@ void firstPass(char *source_code, struct tableEntry symbol_table[],
                 if (op[0] == '<')
                 {
                     memory[*instruction_counter] = LOAD * MEMORY_SIZE + left_location;
+                    if (*instruction_counter > 0 && memory[(*instruction_counter) - 1] / MEMORY_SIZE == STORE
+                        && memory[(*instruction_counter) - 1] % MEMORY_SIZE == memory[*instruction_counter] % MEMORY_SIZE)
+                    {
+                        (*instruction_counter) -= 2;
+                    }
                     ++(*instruction_counter);
                     memory[*instruction_counter] = SUBSTRACT * MEMORY_SIZE + right_location;
                     ++(*instruction_counter);
                 }else
                 {
                     memory[*instruction_counter] = LOAD * MEMORY_SIZE + right_location;
+                    if (*instruction_counter > 0 && memory[(*instruction_counter) - 1] / MEMORY_SIZE == STORE
+                        && memory[(*instruction_counter) - 1] % MEMORY_SIZE == memory[*instruction_counter] % MEMORY_SIZE)
+                    {
+                        (*instruction_counter) -= 2;
+                    }
                     ++(*instruction_counter);
                     memory[*instruction_counter] = SUBSTRACT * MEMORY_SIZE + left_location;
                     ++(*instruction_counter);
